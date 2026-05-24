@@ -50,8 +50,12 @@ export function History() {
                 <li key={h.id} className="p-4 flex items-center justify-between">
                   <div className="space-y-1">
                     <p className="text-sm">
-                      <span className="font-medium">{h.member?.full_name}</span>
-                      {' → '}<span className="font-medium">{h.skill?.name}</span>
+                      <span className="text-gray-500 dark:text-gray-400">Membre :</span>
+                      {' '}<span className="font-medium">{h.member?.full_name || h.member_id?.slice(0, 8)}</span>
+                    </p>
+                    <p className="text-sm">
+                      <span className="text-gray-500 dark:text-gray-400">Compétence :</span>
+                      {' '}<span className="font-medium">{h.skill?.name}</span>
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       Par {h.changer?.full_name} — {new Date(h.created_at).toLocaleString()}
