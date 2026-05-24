@@ -27,15 +27,15 @@ export function Profile() {
         <CardHeader><CardTitle>Informations</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="text-sm text-gray-600">Email</label>
+            <label className="text-sm text-gray-600 dark:text-gray-400">Email</label>
             <p className="font-medium">{profile?.email}</p>
           </div>
           <div>
-            <label className="text-sm text-gray-600">Rôle</label>
+            <label className="text-sm text-gray-600 dark:text-gray-400">Rôle</label>
             <p className="font-medium capitalize">{profile?.role}</p>
           </div>
           <div>
-            <label className="text-sm text-gray-600">Nom complet</label>
+            <label className="text-sm text-gray-600 dark:text-gray-400">Nom complet</label>
             <Input value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <Button onClick={handleSave}>Enregistrer</Button>

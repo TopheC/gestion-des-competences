@@ -4,10 +4,11 @@ import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { InviteUserModal } from '@/components/InviteUserModal'
+import { Download } from 'lucide-react'
 import { toast } from 'sonner'
 
 export function Members() {
@@ -37,11 +38,32 @@ export function Members() {
     toast.success('Membre supprimé')
   }
 
+  function exportCSV() {
+    const header = 'Nom,Email,Rôle,Inscrit le\n'
+    const rows = members.map((m) =>
+      `"${m.full_name || ''}","${m.email}","${m.role}","${new Date(m.created_at).toLocaleDateString()}"`
+    ).join('\n')
+    const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'membres.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success('Fichier CSV téléchargé')
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Membres</h1>
-        <InviteUserModal />
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={exportCSV}>
+            <Download className="h-4 w-4 mr-2" />
+            CSV
+          </Button>
+          <InviteUserModal />
+        </div>
       </div>
 
       <Card>

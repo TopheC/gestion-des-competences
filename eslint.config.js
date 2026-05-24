@@ -18,4 +18,15 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
+  {
+    files: ['src/components/ui/**'],
+    rules: {
+      'no-unused-vars': 'off',
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
+    files: ['vite.config.js'],
+    rules: { 'no-undef': 'off' },
+  },
 ])

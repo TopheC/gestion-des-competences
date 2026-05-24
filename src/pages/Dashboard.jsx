@@ -29,7 +29,6 @@ export function Dashboard() {
       })
       setRecentChanges(history.data || [])
 
-      // Compétences les mieux notées (moyenne)
       const { data: levels } = await supabase
         .from('skill_levels')
         .select('skill_id, level, skill:skill_id(name)')
@@ -54,7 +53,7 @@ export function Dashboard() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Tableau de bord</h1>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader><CardTitle className="text-lg">Membres</CardTitle></CardHeader>
           <CardContent><p className="text-3xl font-bold">{stats.members}</p></CardContent>
@@ -69,12 +68,12 @@ export function Dashboard() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader><CardTitle className="text-lg">Compétences les mieux notées</CardTitle></CardHeader>
           <CardContent>
             {topSkills.length === 0 ? (
-              <p className="text-gray-500">Aucune évaluation pour le moment</p>
+              <p className="text-gray-500 dark:text-gray-400">Aucune évaluation pour le moment</p>
             ) : (
               <ul className="space-y-2">
                 {topSkills.map((s) => (
@@ -92,11 +91,11 @@ export function Dashboard() {
           <CardHeader><CardTitle className="text-lg">Dernières évolutions</CardTitle></CardHeader>
           <CardContent className="max-h-80 overflow-auto">
             {recentChanges.length === 0 ? (
-              <p className="text-gray-500">Aucun changement récent</p>
+              <p className="text-gray-500 dark:text-gray-400">Aucun changement récent</p>
             ) : (
               <ul className="space-y-3">
                 {recentChanges.map((c) => (
-                  <li key={c.id} className="text-sm border-b pb-2 last:border-0">
+                  <li key={c.id} className="text-sm border-b dark:border-gray-800 pb-2 last:border-0">
                     <span className="font-medium">{c.member?.full_name}</span>
                     {' '}a mis à jour{' '}
                     <span className="font-medium">{c.skill?.name}</span>

@@ -1,11 +1,24 @@
 import { readFileSync } from 'fs'
+import { resolve, dirname } from 'path'
+import { fileURLToPath } from 'url'
 
-const SUPABASE_URL = 'http://192.168.2.220:8000'
-const ANON_KEY = readFileSync('/home/tophe/10-Projets/DevOps/OpenCode/GestionDesCompetences/.env', 'utf8')
-  .split('\n')
-  .find(l => l.startsWith('VITE_SUPABASE_ANON_KEY='))
-  ?.split('=').slice(1).join('=')
-const SERVICE_ROLE_KEY = 'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImJmMzI4YWViLTYwMWYtNGEzZC04MjdiLTY1MTZlZTY0MWViMyJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UiLCJpYXQiOjE3NzkzMDAyNDMsImV4cCI6MTkzNjk4MDI0M30.qt2IKVgwaQQkHIZVWH4tEcrozU0mT3F9dNC9Yo83UidKwsoxHRqZz8hBWjreRPsThUcCgjxOmhwxeTB7Zd7RFA'
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const envPath = resolve(__dirname, '..', '.env')
+const envContent = readFileSync(envPath, 'utf8')
+
+function readEnv(key) {
+  const line = envContent.split('\n').find(l => l.startsWith(`${key}=`))
+  return line?.split('=').slice(1).join('=')?.trim()
+}
+
+const SUPABASE_URL = readEnv('VITE_SUPABASE_URL')
+const ANON_KEY = readEnv('VITE_SUPABASE_ANON_KEY')
+const SERVICE_ROLE_KEY = readEnv('VITE_SUPABASE_SERVICE_ROLE_KEY')
+
+if (!SUPABASE_URL || !ANON_KEY || !SERVICE_ROLE_KEY) {
+  console.error('Missing required env vars in .env. Need VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_SUPABASE_SERVICE_ROLE_KEY')
+  process.exit(1)
+}
 
 const headers = {
   'apikey': ANON_KEY,
