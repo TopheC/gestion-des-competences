@@ -25,7 +25,8 @@ export function Members() {
   }
 
   async function updateMember() {
-    await supabase.from('members').update({ full_name: editName }).eq('id', editMember.id)
+    const { error } = await supabase.from('members').update({ full_name: editName }).eq('id', editMember.id)
+    if (error) { toast.error(error.message); return }
     setEditMember(null)
     load()
     toast.success('Membre mis à jour')
@@ -33,7 +34,8 @@ export function Members() {
 
   async function deleteMember(id) {
     if (!confirm('Supprimer ce membre ?')) return
-    await supabase.from('members').delete().eq('id', id)
+    const { error } = await supabase.from('members').delete().eq('id', id)
+    if (error) { toast.error(error.message); return }
     load()
     toast.success('Membre supprimé')
   }

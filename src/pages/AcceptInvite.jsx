@@ -58,6 +58,8 @@ export function AcceptInvite() {
     }
 
     await supabase.from('invitations').update({ accepted: true }).eq('token', token)
+      .then()
+      .catch(() => {})
 
     toast.success('Compte créé ! Vous pouvez vous connecter.')
     navigate('/login')

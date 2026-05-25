@@ -22,9 +22,11 @@ export function Skills() {
 
   async function saveCategory() {
     if (editCat) {
-      await supabase.from('categories').update({ name: newCatName, color: newCatColor }).eq('id', editCat)
+      const { error } = await supabase.from('categories').update({ name: newCatName, color: newCatColor }).eq('id', editCat)
+      if (error) { toast.error(error.message); return }
     } else {
-      await supabase.from('categories').insert({ name: newCatName, color: newCatColor })
+      const { error } = await supabase.from('categories').insert({ name: newCatName, color: newCatColor })
+      if (error) { toast.error(error.message); return }
     }
     setCatDialogOpen(false)
     setEditCat(null)
@@ -40,7 +42,8 @@ export function Skills() {
   }
 
   async function saveSkill() {
-    await supabase.from('skills').insert({ name: newSkill.name, category_id: newSkill.category_id })
+    const { error } = await supabase.from('skills').insert({ name: newSkill.name, category_id: newSkill.category_id })
+    if (error) { toast.error(error.message); return }
     setSkillDialogOpen(false)
     setNewSkill({ name: '', category_id: '' })
     refetchSkills()

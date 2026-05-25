@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
+import { toast } from 'sonner'
 
 export function useSkillLevels() {
   const [levels, setLevels] = useState({})
@@ -40,19 +41,22 @@ export function useSkillLevels() {
     const oldLevel = existing?.level
 
     if (existing) {
-      await supabase.from('skill_levels').update({ level: newLevel }).eq('id', existing.id)
+      const { error } = await supabase.from('skill_levels').update({ level: newLevel }).eq('id', existing.id)
+      if (error) { toast.error(error.message); return }
     } else {
-      await supabase.from('skill_levels').insert({ member_id: memberId, skill_id: skillId, level: newLevel })
+      const { error } = await supabase.from('skill_levels').insert({ member_id: memberId, skill_id: skillId, level: newLevel })
+      if (error) { toast.error(error.message); return }
     }
 
     if (oldLevel !== newLevel && changedBy) {
-      await supabase.from('skill_history').insert({
+      const { error } = await supabase.from('skill_history').insert({
         member_id: memberId,
         skill_id: skillId,
         old_level: oldLevel || null,
         new_level: newLevel,
         changed_by: changedBy,
       })
+      if (error) { toast.error(error.message); return }
     }
 
     await fetch()
