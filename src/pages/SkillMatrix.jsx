@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { useCategories } from '@/hooks/useCategories'
 import { useSkills } from '@/hooks/useSkills'
@@ -7,9 +8,20 @@ import { useSkillLevels } from '@/hooks/useSkillLevels'
 import { SkillMatrixFilters } from '@/components/matrix/SkillMatrixFilters'
 import { SkillMatrixTable } from '@/components/matrix/SkillMatrixTable'
 import { SkillMemberForm } from '@/components/matrix/SkillMemberForm'
+import { ViewSwitcher } from '@/components/matrix/ViewSwitcher'
+import { HeatmapView } from '@/components/matrix/HeatmapView'
 import { Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+
+const ScatterView = lazy(() => import('@/components/matrix/ScatterView'))
+const GraphView = lazy(() => import('@/components/matrix/GraphView'))
+const TreemapView = lazy(() => import('@/components/matrix/TreemapView'))
+const RadarView = lazy(() => import('@/components/matrix/RadarView'))
+const BarChartView = lazy(() => import('@/components/matrix/BarChartView'))
+
+const hideMemberViews = new Set(['bars'])
+const showLevelLegendViews = new Set(['table', 'heat'])
 
 export function SkillMatrix() {
   const { profile } = useAuth()
@@ -20,10 +32,17 @@ export function SkillMatrix() {
   const { members } = useMembers()
   const { levels, updateLevel } = useSkillLevels()
 
+  const [searchParams, setSearchParams] = useSearchParams()
+  const viewMode = searchParams.get('view') || 'table'
+
   const [filterCat, setFilterCat] = useState('all')
   const [filterMember, setFilterMember] = useState('all')
   const [filterMinLevel, setFilterMinLevel] = useState(0)
   const [editing, setEditing] = useState(null)
+
+  function setViewMode(mode) {
+    setSearchParams(mode === 'table' ? {} : { view: mode }, { replace: true })
+  }
 
   function onFilterChange(key, value) {
     if (key === 'cat') setFilterCat(value)
@@ -73,14 +92,131 @@ export function SkillMatrix() {
     toast.success('Fichier CSV téléchargé')
   }
 
+  function navigateToView(mode, filters) {
+    if (filters.cat !== undefined) setFilterCat(filters.cat)
+    if (filters.member !== undefined) setFilterMember(filters.member)
+    if (filters.minLevel !== undefined) setFilterMinLevel(filters.minLevel)
+    setViewMode(mode)
+  }
+
+  const commonProps = {
+    categories, skills, members, levels,
+    isAdmin, currentUserId,
+    filterCat, filterMember, filterMinLevel,
+  }
+
+  const editableProps = {
+    editing, onEdit: setEditing, onUpdate: handleUpdate, onCancel: () => setEditing(null),
+  }
+
+  function renderView() {
+    switch (viewMode) {
+      case 'heat':
+        return (
+          <HeatmapView
+            {...commonProps}
+            {...editableProps}
+            filteredSkills={filteredSkills}
+            visibleMembers={visibleMembers}
+          />
+        )
+
+      case 'scatter':
+        return (
+          <Suspense fallback={<Fallback />}>
+            <ScatterView
+              {...commonProps}
+              filteredSkills={filteredSkills}
+              onMemberSelect={(memberId) => navigateToView('table', { member: memberId })}
+            />
+          </Suspense>
+        )
+
+      case 'graph':
+        return (
+          <Suspense fallback={<Fallback />}>
+            <GraphView
+              {...commonProps}
+              filteredSkills={filteredSkills}
+              filteredMembers={filteredMembers}
+            />
+          </Suspense>
+        )
+
+      case 'treemap':
+        return (
+          <Suspense fallback={<Fallback />}>
+            <TreemapView
+              {...commonProps}
+              filteredSkills={filteredSkills}
+              onCellClick={(catId, memberId) => navigateToView('table', { cat: catId, member: memberId })}
+            />
+          </Suspense>
+        )
+
+      case 'radar':
+        return (
+          <Suspense fallback={<Fallback />}>
+            <RadarView {...commonProps} />
+          </Suspense>
+        )
+
+      case 'bars':
+        return (
+          <Suspense fallback={<Fallback />}>
+            <BarChartView
+              {...commonProps}
+              onBarClick={(catId, level) => navigateToView('table', { cat: catId, minLevel: level })}
+            />
+          </Suspense>
+        )
+
+      default:
+        if (filterMember !== 'all' && visibleMembers.length === 1) {
+          return (
+            <SkillMemberForm
+              member={visibleMembers[0]}
+              categories={categories}
+              skills={filteredSkills}
+              levels={levels}
+              isAdmin={isAdmin}
+              currentUserId={currentUserId}
+              onSave={(memberId, changes) => {
+                Promise.all(changes.map((c) => updateLevel(memberId, c.skillId, c.newLevel, profile.id)))
+                  .then(() => toast.success('Compétences mises à jour'))
+                  .catch(() => toast.error('Erreur lors de la mise à jour'))
+              }}
+            />
+          )
+        }
+        return (
+          <SkillMatrixTable
+            categories={categories}
+            skills={filteredSkills}
+            members={visibleMembers}
+            levels={levels}
+            isAdmin={isAdmin}
+            currentUserId={currentUserId}
+            editing={editing}
+            onEdit={setEditing}
+            onUpdate={handleUpdate}
+            onCancel={() => setEditing(null)}
+          />
+        )
+    }
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <h1 className="text-2xl font-bold">Matrice des compétences</h1>
-        <Button variant="outline" onClick={exportCSV}>
-          <Download className="h-4 w-4 mr-2" />
-          CSV
-        </Button>
+        <div className="flex items-center gap-2">
+          <ViewSwitcher active={viewMode} onChange={setViewMode} />
+          <Button variant="outline" onClick={exportCSV}>
+            <Download className="h-4 w-4 mr-2" />
+            CSV
+          </Button>
+        </div>
       </div>
 
       <SkillMatrixFilters
@@ -90,43 +226,27 @@ export function SkillMatrix() {
         filterMember={filterMember}
         filterMinLevel={filterMinLevel}
         onFilterChange={onFilterChange}
+        hideMember={hideMemberViews.has(viewMode)}
       />
 
-      <div className="flex gap-4 text-sm text-gray-500 dark:text-gray-400">
-        <span><span className="inline-block w-3 h-3 rounded-full bg-gray-200 mr-1" /> Débutant</span>
-        <span><span className="inline-block w-3 h-3 rounded-full bg-blue-200 mr-1" /> Intermédiaire</span>
-        <span><span className="inline-block w-3 h-3 rounded-full bg-amber-200 mr-1" /> Avancé</span>
-        <span><span className="inline-block w-3 h-3 rounded-full bg-green-200 mr-1" /> Expert</span>
-      </div>
-
-      {filterMember !== 'all' && visibleMembers.length === 1 ? (
-        <SkillMemberForm
-          member={visibleMembers[0]}
-          categories={categories}
-          skills={filteredSkills}
-          levels={levels}
-          isAdmin={isAdmin}
-          currentUserId={currentUserId}
-          onSave={(memberId, changes) => {
-            Promise.all(changes.map((c) => updateLevel(memberId, c.skillId, c.newLevel, profile.id)))
-              .then(() => toast.success('Compétences mises à jour'))
-              .catch(() => toast.error('Erreur lors de la mise à jour'))
-          }}
-        />
-      ) : (
-        <SkillMatrixTable
-          categories={categories}
-          skills={filteredSkills}
-          members={visibleMembers}
-          levels={levels}
-          isAdmin={isAdmin}
-          currentUserId={currentUserId}
-          editing={editing}
-          onEdit={setEditing}
-          onUpdate={handleUpdate}
-          onCancel={() => setEditing(null)}
-        />
+      {showLevelLegendViews.has(viewMode) && (
+        <div className="flex gap-4 text-sm text-gray-500 dark:text-gray-400">
+          <span><span className="inline-block w-3 h-3 rounded-full bg-gray-200 mr-1" /> Débutant</span>
+          <span><span className="inline-block w-3 h-3 rounded-full bg-blue-200 mr-1" /> Intermédiaire</span>
+          <span><span className="inline-block w-3 h-3 rounded-full bg-amber-200 mr-1" /> Avancé</span>
+          <span><span className="inline-block w-3 h-3 rounded-full bg-green-200 mr-1" /> Expert</span>
+        </div>
       )}
+
+      {renderView()}
+    </div>
+  )
+}
+
+function Fallback() {
+  return (
+    <div className="flex items-center justify-center min-h-[400px] text-gray-400">
+      Chargement...
     </div>
   )
 }
