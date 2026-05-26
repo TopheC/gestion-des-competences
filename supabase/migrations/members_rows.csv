@@ -1,0 +1,7 @@
+id,email,full_name,role,created_at
+54f458ee-a8b9-4965-bfa6-f893adb10b5a,carole@equipe.local,Carole Lambert,member,2026-05-24 18:51:30.680837+00
+6f420991-8c9d-47c0-82bb-437ea2626b8d,admin@equipe.local,Admin SysAdmin,admin,2026-05-24 18:31:09.701556+00
+85ff3b30-be98-4a7e-b904-f34dda0a4fa2,ccado@free.fr,TopheC,member,2026-05-24 18:27:39.550418+00
+976c2df6-f29d-4275-bb2e-d52e9d7a3fb0,bob@equipe.local,Bob Dupont,member,2026-05-24 18:51:30.411805+00
+a8d8aa64-24fe-49bf-b468-514133262391,alice@equipe.local,Alice Martin,member,2026-05-24 18:30:23.785113+00
+b1c37ba5-4cac-4753-9af9-ef8d1604b633,david@equipe.local,David Moreau,member,2026-05-24 18:51:30.905437+00
