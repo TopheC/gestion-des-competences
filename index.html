@@ -8,6 +8,27 @@
   </head>
   <body>
     <div id="root"></div>
+    <div id="error-root" style="display:none;padding:2rem;font-family:sans-serif;max-width:600px;margin:auto;margin-top:10vh">
+      <h1 style="color:#dc2626;font-size:1.5rem;margin-bottom:1rem">Erreur de chargement</h1>
+      <pre id="error-message" style="background:#fef2f2;padding:1rem;border-radius:0.5rem;white-space:pre-wrap;color:#991b1b"></pre>
+      <button onclick="window.location.reload()" style="margin-top:1rem;padding:0.5rem 1rem;background:#2563eb;color:white;border:none;border-radius:0.25rem;cursor:pointer">Recharger</button>
+    </div>
+    <script>
+      window.onerror = function(msg, url, line, col, err) {
+        var el = document.getElementById('error-root');
+        var msgEl = document.getElementById('error-message');
+        el.style.display = 'block';
+        msgEl.textContent = (err && err.stack) ? err.stack : msg;
+        document.getElementById('root').style.display = 'none';
+      };
+      window.addEventListener('unhandledrejection', function(e) {
+        var el = document.getElementById('error-root');
+        var msgEl = document.getElementById('error-message');
+        el.style.display = 'block';
+        msgEl.textContent = (e.reason && e.reason.stack) ? e.reason.stack : String(e.reason);
+        document.getElementById('root').style.display = 'none';
+      });
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
