@@ -10,6 +10,7 @@ import { SkillMatrixTable } from '@/components/matrix/SkillMatrixTable'
 import { SkillMemberForm } from '@/components/matrix/SkillMemberForm'
 import { ViewSwitcher } from '@/components/matrix/ViewSwitcher'
 import { HeatmapView } from '@/components/matrix/HeatmapView'
+import { ChartSkeleton } from '@/components/matrix/ChartCard'
 import { Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
@@ -110,100 +111,88 @@ export function SkillMatrix() {
   }
 
   function renderView() {
-    switch (viewMode) {
-      case 'heat':
-        return (
+    const lazyViews = {
+      scatter: <ScatterView
+        {...commonProps}
+        filteredSkills={filteredSkills}
+        onMemberSelect={(memberId) => navigateToView('table', { member: memberId })}
+      />,
+      graph: <GraphView
+        {...commonProps}
+        filteredSkills={filteredSkills}
+        filteredMembers={filteredMembers}
+      />,
+      treemap: <TreemapView
+        {...commonProps}
+        filteredSkills={filteredSkills}
+        onCellClick={(catId, memberId) => navigateToView('table', { cat: catId, member: memberId })}
+      />,
+      radar: <RadarView {...commonProps} />,
+      bars: <BarChartView
+        {...commonProps}
+        onBarClick={(catId, level) => navigateToView('table', { cat: catId, minLevel: level })}
+      />,
+    }
+
+    if (lazyViews[viewMode]) {
+      return (
+        <div key={viewMode} className="animate-chart-fade">
+          <Suspense fallback={<ChartSkeleton />}>
+            {lazyViews[viewMode]}
+          </Suspense>
+        </div>
+      )
+    }
+
+    if (viewMode === 'heat') {
+      return (
+        <div key="heat" className="animate-chart-fade">
           <HeatmapView
             {...commonProps}
             {...editableProps}
             filteredSkills={filteredSkills}
             visibleMembers={visibleMembers}
           />
-        )
+        </div>
+      )
+    }
 
-      case 'scatter':
-        return (
-          <Suspense fallback={<Fallback />}>
-            <ScatterView
-              {...commonProps}
-              filteredSkills={filteredSkills}
-              onMemberSelect={(memberId) => navigateToView('table', { member: memberId })}
-            />
-          </Suspense>
-        )
-
-      case 'graph':
-        return (
-          <Suspense fallback={<Fallback />}>
-            <GraphView
-              {...commonProps}
-              filteredSkills={filteredSkills}
-              filteredMembers={filteredMembers}
-            />
-          </Suspense>
-        )
-
-      case 'treemap':
-        return (
-          <Suspense fallback={<Fallback />}>
-            <TreemapView
-              {...commonProps}
-              filteredSkills={filteredSkills}
-              onCellClick={(catId, memberId) => navigateToView('table', { cat: catId, member: memberId })}
-            />
-          </Suspense>
-        )
-
-      case 'radar':
-        return (
-          <Suspense fallback={<Fallback />}>
-            <RadarView {...commonProps} />
-          </Suspense>
-        )
-
-      case 'bars':
-        return (
-          <Suspense fallback={<Fallback />}>
-            <BarChartView
-              {...commonProps}
-              onBarClick={(catId, level) => navigateToView('table', { cat: catId, minLevel: level })}
-            />
-          </Suspense>
-        )
-
-      default:
-        if (filterMember !== 'all' && visibleMembers.length === 1) {
-          return (
-            <SkillMemberForm
-              member={visibleMembers[0]}
-              categories={categories}
-              skills={filteredSkills}
-              levels={levels}
-              isAdmin={isAdmin}
-              currentUserId={currentUserId}
-              onSave={(memberId, changes) => {
-                Promise.all(changes.map((c) => updateLevel(memberId, c.skillId, c.newLevel, profile.id)))
-                  .then(() => toast.success('Compétences mises à jour'))
-                  .catch(() => toast.error('Erreur lors de la mise à jour'))
-              }}
-            />
-          )
-        }
-        return (
-          <SkillMatrixTable
+    if (filterMember !== 'all' && visibleMembers.length === 1) {
+      return (
+        <div key="form" className="animate-chart-slide">
+          <SkillMemberForm
+            member={visibleMembers[0]}
             categories={categories}
             skills={filteredSkills}
-            members={visibleMembers}
             levels={levels}
             isAdmin={isAdmin}
             currentUserId={currentUserId}
-            editing={editing}
-            onEdit={setEditing}
-            onUpdate={handleUpdate}
-            onCancel={() => setEditing(null)}
+            onSave={(memberId, changes) => {
+              Promise.all(changes.map((c) => updateLevel(memberId, c.skillId, c.newLevel, profile.id)))
+                .then(() => toast.success('Compétences mises à jour'))
+                .catch(() => toast.error('Erreur lors de la mise à jour'))
+            }}
           />
-        )
+        </div>
+      )
     }
+
+    return (
+      <div key="table" className="animate-chart-fade">
+        <SkillMatrixTable
+          categories={categories}
+          skills={filteredSkills}
+          members={visibleMembers}
+          levels={levels}
+          isAdmin={isAdmin}
+          currentUserId={currentUserId}
+          editing={editing}
+          onEdit={setEditing}
+          onUpdate={handleUpdate}
+          onCancel={() => setEditing(null)}
+        />
+      </div>
+    )
   }
 
   return (
@@ -243,10 +232,4 @@ export function SkillMatrix() {
   )
 }
 
-function Fallback() {
-  return (
-    <div className="flex items-center justify-center min-h-[400px] text-gray-400">
-      Chargement...
-    </div>
-  )
-}
+

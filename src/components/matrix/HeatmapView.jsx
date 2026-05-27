@@ -1,14 +1,20 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronRight, ListCollapse } from 'lucide-react'
-import { SkillLevelSelect } from '@/components/SkillLevelBadge'
+import { ChevronDown, ChevronRight, ListCollapse, Pencil } from 'lucide-react'
+import { SkillLevelSelect, levelConfig } from '@/components/SkillLevelBadge'
 
-const heatColors = {
-  0: 'bg-gray-50 dark:bg-gray-900',
-  1: 'bg-gray-200 dark:bg-gray-700',
-  2: 'bg-blue-200 dark:bg-blue-900',
-  3: 'bg-amber-200 dark:bg-amber-900',
-  4: 'bg-green-200 dark:bg-green-900',
-}
+const heatColors = [
+  'bg-[var(--level-1-bg)]',
+  'bg-[var(--level-2-bg)]',
+  'bg-[var(--level-3-bg)]',
+  'bg-[var(--level-4-bg)]',
+]
+
+const levelDotColors = [
+  'bg-[var(--level-1)]',
+  'bg-[var(--level-2)]',
+  'bg-[var(--level-3)]',
+  'bg-[var(--level-4)]',
+]
 
 export function HeatmapView({
   categories, levels,
@@ -17,6 +23,7 @@ export function HeatmapView({
   filteredSkills, visibleMembers,
 }) {
   const [collapsed, setCollapsed] = useState(new Set())
+  const [hoveredCell, setHoveredCell] = useState(null)
 
   const grouped = categories
     .map((cat) => ({
@@ -46,29 +53,35 @@ export function HeatmapView({
 
   if (visibleMembers.length === 0) {
     return (
-      <div className="p-8 text-center text-gray-400">
-        Aucun résultat
+      <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+        <svg className="w-10 h-10 mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        <p className="text-sm">Aucun résultat</p>
       </div>
     )
   }
 
   return (
-    <div className="overflow-auto">
+    <div className="overflow-auto rounded-lg border">
       <table className="w-full border-collapse">
         <thead>
           <tr>
-            <th className="text-left p-2 bg-gray-100 dark:bg-gray-800 border dark:border-gray-700 sticky left-0 z-10 min-w-[180px]">
+            <th className="text-left p-2 bg-muted/80 backdrop-blur-sm border-b sticky left-0 z-10 min-w-[180px] shadow-[2px_0_4px_-2px_rgba(0,0,0,0.05)]">
               <button
-                className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mr-2"
+                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mr-2 transition-colors"
                 onClick={toggleAll}
                 title={allCollapsed ? 'Tout dérouler' : 'Tout replier'}
               >
-                <ListCollapse className={`h-3.5 w-3.5 transition-transform ${allCollapsed ? '' : 'rotate-180'}`} />
+                <ListCollapse className={`h-3.5 w-3.5 transition-transform duration-200 ${allCollapsed ? '' : 'rotate-180'}`} />
               </button>
               Compétence
             </th>
             {visibleMembers.map((m) => (
-              <th key={m.id} className="p-2 bg-gray-100 dark:bg-gray-800 border dark:border-gray-700 text-sm text-center min-w-[120px]">
+              <th
+                key={m.id}
+                className={`p-2 bg-muted/80 backdrop-blur-sm border-b text-sm text-center min-w-[120px] font-medium ${currentUserId === m.id ? 'text-primary' : ''}`}
+              >
                 {m.full_name || m.email}
               </th>
             ))}
@@ -78,78 +91,91 @@ export function HeatmapView({
           {grouped.map((g) => {
             const isCollapsed = collapsed.has(g.id)
             return (
-              <>
-                <tr key={g.id} className="bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800">
-                  <td className="p-2 border dark:border-gray-700 font-semibold text-sm sticky left-0 bg-gray-50 dark:bg-gray-800/50 cursor-pointer" onClick={() => toggleCategory(g.id)}>
-                    <span className="flex items-center gap-2">
+              <tr key={g.id} className="bg-muted/30 hover:bg-muted/50 transition-colors">
+                <td className="p-2 border-b font-semibold text-sm sticky left-0 bg-muted/30 hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => toggleCategory(g.id)}>
+                  <span className="flex items-center gap-2">
+                    <span className="text-muted-foreground transition-transform duration-200">
                       {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: g.color }} />
-                      {g.name}
                     </span>
-                  </td>
-                  {visibleMembers.map((m) => {
-                    const dotColors = ['bg-gray-200', 'bg-blue-200', 'bg-amber-200', 'bg-green-200']
-                    const counts = [0, 0, 0, 0]
-                    g.catSkills.forEach((s) => {
-                      const lvl = levels[`${m.id}-${s.id}`]?.level
-                      if (lvl) counts[lvl - 1]++
-                    })
-                    return (
-                      <td key={m.id} className="p-2 border dark:border-gray-700 text-center bg-gray-50 dark:bg-gray-800/50">
-                        <span className="inline-flex items-center gap-2 text-xs">
-                          {counts.map((c, i) =>
-                            c > 0 ? (
-                              <span key={i} className="inline-flex items-center gap-0.5">
-                                <span className={'inline-block w-2.5 h-2.5 rounded-full ' + dotColors[i]} />
-                                <span className="font-semibold">{c}</span>
-                              </span>
-                            ) : null
-                          )}
-                        </span>
-                      </td>
-                    )
-                  })}
-                </tr>
-                {!isCollapsed && g.catSkills.map((s) => (
-                  <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                    <td className="p-2 border dark:border-gray-700 font-medium sticky left-0 bg-white dark:bg-gray-950">
-                      <span className="text-sm pl-6">{s.name}</span>
-                    </td>
-                    {visibleMembers.map((m) => {
-                      const key = `${m.id}-${s.id}`
-                      const level = levels[key]
-                      const lvl = level?.level || 0
-                      const canEditCell = isAdmin || currentUserId === m.id
-                      const isEditing = editing === key
-                      return (
-                        <td
-                          key={m.id}
-                          className={`p-2 border dark:border-gray-700 text-center ${heatColors[lvl]} ${currentUserId === m.id ? 'ring-2 ring-blue-400 dark:ring-blue-600 ring-inset' : ''}`}
-                        >
-                          {isEditing && canEditCell ? (
-                            <SkillLevelSelect
-                              value={level?.level || 1}
-                              onChange={(v) => onUpdate(m.id, s.id, v)}
-                            />
-                          ) : (
-                            <span
-                              className="text-sm font-medium cursor-pointer"
-                              onClick={() => canEditCell && onEdit(key)}
-                            >
-                              {lvl || '—'}
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: g.color }} />
+                    {g.name}
+                  </span>
+                </td>
+                {visibleMembers.map((m) => {
+                  const counts = [0, 0, 0, 0]
+                  g.catSkills.forEach((s) => {
+                    const lvl = levels[`${m.id}-${s.id}`]?.level
+                    if (lvl) counts[lvl - 1]++
+                  })
+                  return (
+                    <td key={m.id} className="p-2 border-b text-center bg-muted/30">
+                      <span className="inline-flex items-center justify-center gap-1.5 text-xs">
+                        {counts.map((c, i) =>
+                          c > 0 ? (
+                            <span key={i} className="inline-flex items-center gap-0.5" title={`${levelConfig[i + 1]?.label}: ${c}`}>
+                              <span className={`inline-block w-2.5 h-2.5 rounded-full ${levelDotColors[i]}`} />
+                              <span className="font-semibold tabular-nums">{c}</span>
                             </span>
-                          )}
-                          {isEditing && canEditCell && (
-                            <button className="ml-1 text-xs text-red-500" onClick={onCancel}>✕</button>
-                          )}
-                        </td>
-                      )
-                    })}
-                  </tr>
-                ))}
-              </>
+                          ) : null
+                        )}
+                      </span>
+                    </td>
+                  )
+                })}
+              </tr>
             )
           })}
+          {grouped.map((g) =>
+            !collapsed.has(g.id) && g.catSkills.map((s) => (
+              <tr key={s.id} className="hover:bg-muted/20 transition-colors group">
+                <td className="p-2 border-b font-medium sticky left-0 bg-background hover:bg-muted/20 transition-colors">
+                  <span className="text-sm pl-7">{s.name}</span>
+                </td>
+                {visibleMembers.map((m) => {
+                  const key = `${m.id}-${s.id}`
+                  const level = levels[key]
+                  const lvl = level?.level || 0
+                  const canEditCell = isAdmin || currentUserId === m.id
+                  const isEditing = editing === key
+                  const isHovered = hoveredCell === key
+                  const isMyRow = currentUserId === m.id
+
+                  return (
+                    <td
+                      key={m.id}
+                      className={`p-1.5 border-b text-center relative transition-all duration-150 ${
+                        lvl > 0 ? heatColors[lvl - 1] : 'bg-background'
+                      } ${isMyRow ? 'ring-1 ring-primary/30 ring-inset' : ''}`}
+                      onMouseEnter={() => setHoveredCell(key)}
+                      onMouseLeave={() => setHoveredCell(null)}
+                    >
+                      {isEditing && canEditCell ? (
+                        <span className="inline-flex items-center gap-1">
+                          <SkillLevelSelect
+                            value={level?.level || 1}
+                            onChange={(v) => onUpdate(m.id, s.id, v)}
+                          />
+                          <button className="text-xs text-destructive hover:text-destructive/80 font-medium" onClick={onCancel}>✕</button>
+                        </span>
+                      ) : (
+                        <span
+                          className={`inline-flex items-center justify-center gap-1 text-sm font-medium cursor-pointer rounded px-1.5 py-0.5 transition-all duration-150 ${
+                            isHovered && canEditCell ? 'scale-110 shadow-sm bg-background/80' : ''
+                          }`}
+                          onClick={() => canEditCell && onEdit(key)}
+                        >
+                          {lvl || '—'}
+                          {canEditCell && (
+                            <Pencil className={`h-3 w-3 text-muted-foreground transition-opacity duration-150 ${isHovered ? 'opacity-100' : 'opacity-0'}`} />
+                          )}
+                        </span>
+                      )}
+                    </td>
+                  )
+                })}
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
     </div>
