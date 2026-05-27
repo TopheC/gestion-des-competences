@@ -26,6 +26,8 @@ dist-ssr
 # Environment
 .env
 .env.local
+.env.*
+!.env.example
 
 # OpenCode Stuff
 .agents/*
