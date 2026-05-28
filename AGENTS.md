@@ -62,6 +62,11 @@ Multi-stage: `node:20-alpine` build → `nginx:alpine` serve. `VITE_SUPABASE_URL
 
 Pre-commit hook in `.githooks/pre-commit` scans staged diffs for secrets (Supabase keys, GitHub tokens, Stripe keys, AWS keys, private keys).
 
+## Versioning
+
+- Le fichier `version` à la racine du projet et le champ `"version"` dans `package.json` doivent **toujours** être synchronisés. Toute modification de version doit être répercutée dans les deux fichiers.
+- Format de version : semver (`MAJEUR.MINEUR.CORRECTIF`).
+
 ## Conventions
 
 - JavaScript only (`.jsx`), no TypeScript
