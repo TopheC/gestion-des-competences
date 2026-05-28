@@ -10,6 +10,7 @@ import {
   LayoutDashboard, BookOpen, Users, Table2, History, Menu, X, Sun, Moon, LogOut, User,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import APP_VERSION from '../../../version?raw'
 
 const navItems = [
   { to: '/', label: 'Tableau de bord', icon: LayoutDashboard },
@@ -38,6 +39,9 @@ export function Layout({ children }) {
           <h1 className="text-lg font-bold">Compétences</h1>
           <p className="text-xs text-gray-400">Équipe SysAdmin</p>
         </div>
+        <span className="text-[10px] text-gray-500 font-mono tracking-tight">
+          v{APP_VERSION.trim()}
+        </span>
         {sidebarOpen && (
           <button className="lg:hidden text-gray-400 hover:text-white" onClick={() => setSidebarOpen(false)}>
             <X className="h-5 w-5" />
