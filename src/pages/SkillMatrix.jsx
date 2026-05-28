@@ -5,21 +5,21 @@ import { useCategories } from '@/hooks/useCategories'
 import { useSkills } from '@/hooks/useSkills'
 import { useMembers } from '@/hooks/useMembers'
 import { useSkillLevels } from '@/hooks/useSkillLevels'
-import { SkillMatrixFilters } from '@/components/matrix/SkillMatrixFilters'
-import { SkillMatrixTable } from '@/components/matrix/SkillMatrixTable'
-import { SkillMemberForm } from '@/components/matrix/SkillMemberForm'
-import { ViewSwitcher } from '@/components/matrix/ViewSwitcher'
-import { HeatmapView } from '@/components/matrix/HeatmapView'
-import { ChartSkeleton } from '@/components/matrix/ChartCard'
+import { SkillMatrixFilters } from '@/components/features/matrix/SkillMatrixFilters'
+import { SkillMatrixTable } from '@/components/features/matrix/SkillMatrixTable'
+import { SkillMemberForm } from '@/components/features/matrix/SkillMemberForm'
+import { ViewSwitcher } from '@/components/features/matrix/ViewSwitcher'
+import { HeatmapView } from '@/components/features/matrix/HeatmapView'
+import { ChartSkeleton } from '@/components/features/matrix/ChartCard'
 import { Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
-const ScatterView = lazy(() => import('@/components/matrix/ScatterView'))
-const GraphView = lazy(() => import('@/components/matrix/GraphView'))
-const TreemapView = lazy(() => import('@/components/matrix/TreemapView'))
-const RadarView = lazy(() => import('@/components/matrix/RadarView'))
-const BarChartView = lazy(() => import('@/components/matrix/BarChartView'))
+const ScatterView = lazy(() => import('@/components/features/matrix/ScatterView'))
+const GraphView = lazy(() => import('@/components/features/matrix/GraphView'))
+const TreemapView = lazy(() => import('@/components/features/matrix/TreemapView'))
+const RadarView = lazy(() => import('@/components/features/matrix/RadarView'))
+const BarChartView = lazy(() => import('@/components/features/matrix/BarChartView'))
 
 const hideMemberViews = new Set(['bars'])
 const showLevelLegendViews = new Set(['table', 'heat'])

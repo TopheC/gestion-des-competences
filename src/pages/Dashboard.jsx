@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { SkillLevelBadge } from '@/components/SkillLevelBadge'
+import { SkillLevelBadge } from '@/components/layout/SkillLevelBadge'
 
 export function Dashboard() {
   const [stats, setStats] = useState({ members: 0, skills: 0, categories: 0 })

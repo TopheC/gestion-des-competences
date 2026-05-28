@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { SkillLevelSelect } from '@/components/SkillLevelBadge'
+import { SkillLevelSelect } from '@/components/layout/SkillLevelBadge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Save } from 'lucide-react'

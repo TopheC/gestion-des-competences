@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { InviteUserModal } from '@/components/InviteUserModal'
+import { InviteUserModal } from '@/components/features/members/InviteUserModal'
 import { Download } from 'lucide-react'
 import { toast } from 'sonner'
 

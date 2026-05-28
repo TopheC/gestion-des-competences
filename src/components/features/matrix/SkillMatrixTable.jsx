@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronRight, ListCollapse } from 'lucide-react'
-import { SkillLevelBadge, SkillLevelSelect } from '@/components/SkillLevelBadge'
+import { SkillLevelBadge, SkillLevelSelect } from '@/components/layout/SkillLevelBadge'
 
 export function SkillMatrixTable({ categories, skills, members, levels, isAdmin, currentUserId, editing, onEdit, onUpdate, onCancel }) {
   const [collapsed, setCollapsed] = useState(new Set())

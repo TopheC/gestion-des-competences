@@ -2,7 +2,7 @@ import { useMembers } from '@/hooks/useMembers'
 import { useSkills } from '@/hooks/useSkills'
 import { useHistory } from '@/hooks/useHistory'
 import { Card, CardContent } from '@/components/ui/card'
-import { SkillLevelBadge } from '@/components/SkillLevelBadge'
+import { SkillLevelBadge } from '@/components/layout/SkillLevelBadge'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 

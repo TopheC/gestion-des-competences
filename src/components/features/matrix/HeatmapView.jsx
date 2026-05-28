@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronRight, ListCollapse, Pencil } from 'lucide-react'
-import { SkillLevelSelect, levelConfig } from '@/components/SkillLevelBadge'
+import { SkillLevelSelect, levelConfig } from '@/components/layout/SkillLevelBadge'
 
 const heatColors = [
   'bg-[var(--level-1-bg)]',

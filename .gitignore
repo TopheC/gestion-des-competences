@@ -32,3 +32,4 @@ dist-ssr
 # OpenCode Stuff
 .agents/*
 opencode*
+exports/Session*
