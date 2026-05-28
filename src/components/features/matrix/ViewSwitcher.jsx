@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import {
-  Table2, Palette, ScatterChart, Share2, Grid3x3, Radar, BarChart3,
+  Table2, ScatterChart, Grid3x3, Radar, BarChart3,
 } from 'lucide-react'
 
 const groups = [
@@ -8,14 +8,12 @@ const groups = [
     label: 'Tableau',
     views: [
       { id: 'table', icon: Table2, label: 'Tableau' },
-      { id: 'heat', icon: Palette, label: 'Matrice thermique' },
     ],
   },
   {
     label: 'Graphiques',
     views: [
       { id: 'scatter', icon: ScatterChart, label: 'Nuage de points' },
-      { id: 'graph', icon: Share2, label: 'Graphe' },
       { id: 'treemap', icon: Grid3x3, label: 'Treemap' },
       { id: 'radar', icon: Radar, label: 'Radar' },
       { id: 'bars', icon: BarChart3, label: 'Barres' },

@@ -9,20 +9,18 @@ import { SkillMatrixFilters } from '@/components/features/matrix/SkillMatrixFilt
 import { SkillMatrixTable } from '@/components/features/matrix/SkillMatrixTable'
 import { SkillMemberForm } from '@/components/features/matrix/SkillMemberForm'
 import { ViewSwitcher } from '@/components/features/matrix/ViewSwitcher'
-import { HeatmapView } from '@/components/features/matrix/HeatmapView'
 import { ChartSkeleton } from '@/components/features/matrix/ChartCard'
 import { Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
 const ScatterView = lazy(() => import('@/components/features/matrix/ScatterView'))
-const GraphView = lazy(() => import('@/components/features/matrix/GraphView'))
 const TreemapView = lazy(() => import('@/components/features/matrix/TreemapView'))
 const RadarView = lazy(() => import('@/components/features/matrix/RadarView'))
 const BarChartView = lazy(() => import('@/components/features/matrix/BarChartView'))
 
 const hideMemberViews = new Set(['bars'])
-const showLevelLegendViews = new Set(['table', 'heat'])
+const showLevelLegendViews = new Set(['table'])
 
 export function SkillMatrix() {
   const { profile } = useAuth()
@@ -106,21 +104,12 @@ export function SkillMatrix() {
     filterCat, filterMember, filterMinLevel,
   }
 
-  const editableProps = {
-    editing, onEdit: setEditing, onUpdate: handleUpdate, onCancel: () => setEditing(null),
-  }
-
   function renderView() {
     const lazyViews = {
       scatter: <ScatterView
         {...commonProps}
         filteredSkills={filteredSkills}
         onMemberSelect={(memberId) => navigateToView('table', { member: memberId })}
-      />,
-      graph: <GraphView
-        {...commonProps}
-        filteredSkills={filteredSkills}
-        filteredMembers={filteredMembers}
       />,
       treemap: <TreemapView
         {...commonProps}
@@ -140,19 +129,6 @@ export function SkillMatrix() {
           <Suspense fallback={<ChartSkeleton />}>
             {lazyViews[viewMode]}
           </Suspense>
-        </div>
-      )
-    }
-
-    if (viewMode === 'heat') {
-      return (
-        <div key="heat" className="animate-chart-fade">
-          <HeatmapView
-            {...commonProps}
-            {...editableProps}
-            filteredSkills={filteredSkills}
-            visibleMembers={visibleMembers}
-          />
         </div>
       )
     }
@@ -219,11 +195,11 @@ export function SkillMatrix() {
       />
 
       {showLevelLegendViews.has(viewMode) && (
-        <div className="flex gap-4 text-sm text-gray-500 dark:text-gray-400">
-          <span><span className="inline-block w-3 h-3 rounded-full bg-gray-200 mr-1" /> Débutant</span>
-          <span><span className="inline-block w-3 h-3 rounded-full bg-blue-200 mr-1" /> Intermédiaire</span>
-          <span><span className="inline-block w-3 h-3 rounded-full bg-amber-200 mr-1" /> Avancé</span>
-          <span><span className="inline-block w-3 h-3 rounded-full bg-green-200 mr-1" /> Expert</span>
+        <div className="flex gap-4 text-sm text-muted-foreground">
+          <span><span className="inline-block w-3 h-3 rounded-full mr-1" style={{ background: 'var(--level-1)' }} /> Débutant</span>
+          <span><span className="inline-block w-3 h-3 rounded-full mr-1" style={{ background: 'var(--level-2)' }} /> Intermédiaire</span>
+          <span><span className="inline-block w-3 h-3 rounded-full mr-1" style={{ background: 'var(--level-3)' }} /> Avancé</span>
+          <span><span className="inline-block w-3 h-3 rounded-full mr-1" style={{ background: 'var(--level-4)' }} /> Expert</span>
         </div>
       )}
 
