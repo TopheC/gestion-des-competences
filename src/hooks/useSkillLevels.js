@@ -1,75 +1,70 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
-import { supabase } from '@/lib/supabase'
-import { toast } from 'sonner'
+import { useEffect, useState, useRef, useCallback } from 'react'
+import { createSkillLevelsModule } from '@/data/skillLevels'
+import { createSupabaseAdapter } from '@/data/adapters/supabaseSkillLevels'
+
+let moduleInstance = null
+
+function getModule() {
+  if (!moduleInstance) {
+    moduleInstance = createSkillLevelsModule(createSupabaseAdapter())
+  }
+  return moduleInstance
+}
 
 export function useSkillLevels() {
-  const [levels, setLevels] = useState({})
+  const mod = getModule()
+  const [levels, setLevels] = useState(() => new Map())
   const [loading, setLoading] = useState(true)
-  const channelRef = useRef(null)
+  const unsubRef = useRef(null)
 
-  const fetch = useCallback(async () => {
-    const { data, error } = await supabase.from('skill_levels').select('*')
-    if (!error && data) {
-      const map = {}
-      data.forEach((l) => { map[`${l.member_id}-${l.skill_id}`] = l })
-      setLevels(map)
-    }
-    setLoading(false)
-    return { data, error }
-  }, [])
-
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    fetch()
+    let cancelled = false
 
-    channelRef.current = supabase
-      .channel('skill_levels_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'skill_levels' }, () => {
-        fetch()
-      })
-      .subscribe()
+    async function init() {
+      await mod.refresh()
+      if (!cancelled) {
+        setLevels(mod.list())
+        setLoading(false)
+      }
+    }
+
+    init()
+
+    const unsub = mod.subscribe((event) => {
+      if (event.type === 'levels_changed') {
+        setLevels(mod.list())
+      }
+    })
+    unsubRef.current = unsub
 
     return () => {
-      channelRef.current?.unsubscribe()
+      cancelled = true
+      unsub()
     }
-  }, [fetch])
-  /* eslint-enable react-hooks/set-state-in-effect */
+  }, [mod])
 
-  async function updateLevel(memberId, skillId, newLevel, changedBy) {
-    const key = `${memberId}-${skillId}`
-    const existing = levels[key]
-    const oldLevel = existing?.level
-
-    if (existing) {
-      const { error } = await supabase.from('skill_levels').update({ level: newLevel }).eq('id', existing.id)
-      if (error) { toast.error(error.message); return }
-    } else {
-      const { error } = await supabase.from('skill_levels').insert({ member_id: memberId, skill_id: skillId, level: newLevel })
-      if (error) { toast.error(error.message); return }
+  const updateLevel = useCallback(async (memberId, skillId, newLevel, changedBy) => {
+    const result = await mod.setLevel(memberId, skillId, newLevel, changedBy)
+    if (result.error) {
+      return result
     }
+    return result
+  }, [mod])
 
-    if (oldLevel !== newLevel && changedBy) {
-      const { error } = await supabase.from('skill_history').insert({
-        member_id: memberId,
-        skill_id: skillId,
-        old_level: oldLevel || null,
-        new_level: newLevel,
-        changed_by: changedBy,
-      })
-      if (error) { toast.error(error.message); return }
-    }
+  const refetch = useCallback(async () => {
+    await mod.refresh()
+    setLevels(mod.list())
+  }, [mod])
 
-    await fetch()
-  }
+  const getAverageSkillRating = useCallback((skillId) => {
+    return mod.getAverageForSkill(skillId)
+  }, [mod])
 
-  async function getAverageSkillRating(skillId) {
-    const { data } = await supabase
-      .from('skill_levels')
-      .select('level')
-      .eq('skill_id', skillId)
-    if (!data || data.length === 0) return null
-    return (data.reduce((sum, l) => sum + l.level, 0) / data.length).toFixed(1)
-  }
+  return { levels, loading, refetch, updateLevel, getAverageSkillRating }
+}
 
-  return { levels, loading, refetch: fetch, updateLevel, getAverageSkillRating }
+export { getModule as skillLevelsModule }
+
+export function getSkillLevelsModule() {
+  return getModule()
 }

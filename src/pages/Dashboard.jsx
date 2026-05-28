@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { SkillLevelBadge } from '@/components/layout/SkillLevelBadge'
+import { skillLevelsModule } from '@/hooks/useSkillLevels'
 
 export function Dashboard() {
   const [stats, setStats] = useState({ members: 0, skills: 0, categories: 0 })
@@ -11,40 +11,16 @@ export function Dashboard() {
 
   useEffect(() => {
     async function load() {
-      const [members, skills, categories, history] = await Promise.all([
-        supabase.from('members').select('*', { count: 'exact', head: true }),
-        supabase.from('skills').select('*', { count: 'exact', head: true }),
-        supabase.from('categories').select('*', { count: 'exact', head: true }),
-        supabase.from('skill_history').select(`
-          *,
-          member:member_id(full_name),
-          skill:skill_id(name),
-          changer:changed_by(full_name)
-        `).order('created_at', { ascending: false }).limit(10),
+      const mod = skillLevelsModule()
+      const [statsResult, topResult, histResult] = await Promise.all([
+        mod.getStats(),
+        mod.getTopSkills(5),
+        mod.listHistory({ page: 0, pageSize: 10 }),
       ])
-      setStats({
-        members: members.count || 0,
-        skills: skills.count || 0,
-        categories: categories.count || 0,
-      })
-      setRecentChanges(history.data || [])
 
-      const { data: levels } = await supabase
-        .from('skill_levels')
-        .select('skill_id, level, skill:skill_id(name)')
-      if (levels) {
-        const avgMap = {}
-        levels.forEach((l) => {
-          if (!avgMap[l.skill_id]) avgMap[l.skill_id] = { name: l.skill.name, total: 0, count: 0 }
-          avgMap[l.skill_id].total += l.level
-          avgMap[l.skill_id].count += 1
-        })
-        const sorted = Object.values(avgMap)
-          .map((s) => ({ ...s, avg: (s.total / s.count).toFixed(1) }))
-          .sort((a, b) => b.avg - a.avg)
-          .slice(0, 5)
-        setTopSkills(sorted)
-      }
+      setStats(statsResult)
+      setTopSkills(topResult.data || [])
+      setRecentChanges(histResult.data || [])
     }
     load()
   }, [])

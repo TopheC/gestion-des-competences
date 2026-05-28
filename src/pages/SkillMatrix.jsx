@@ -62,7 +62,7 @@ export function SkillMatrix() {
     : filteredMembers.filter((m) =>
         filteredSkills.some((s) => {
           const key = `${m.id}-${s.id}`
-          return (levels[key]?.level || 0) >= filterMinLevel
+          return (levels.get(key)?.level || 0) >= filterMinLevel
         })
       )
 
@@ -77,7 +77,7 @@ export function SkillMatrix() {
     const rows = filteredSkills.map((s) => {
       const levelsRow = visibleMembers.map((m) => {
         const key = `${m.id}-${s.id}`
-        return levels[key]?.level || ''
+        return levels.get(key)?.level || ''
       })
       return [`"${s.name}"`, ...levelsRow].join(',')
     })

@@ -61,7 +61,7 @@ export default function GraphView({
             let count = 0
             catSkillIds.forEach((sid) => {
               const key = `${m.id}-${sid}`
-              const lvl = levels[key]?.level
+              const lvl = levels.get(key)?.level
               if (lvl) { total += lvl; count++ }
             })
             if (count > 0) {
@@ -85,7 +85,7 @@ export default function GraphView({
       filteredMembers.forEach((m) => {
         filteredSkills.forEach((s) => {
           const key = `${m.id}-${s.id}`
-          const lvl = levels[key]?.level
+          const lvl = levels.get(key)?.level
           if (lvl) {
             links.push({ source: m.id, target: `skill-${s.id}`, strength: lvl / 4 })
           }

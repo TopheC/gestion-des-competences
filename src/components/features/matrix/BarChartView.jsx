@@ -22,7 +22,7 @@ export default function BarChartView({
     members.forEach((m) => {
       catSkills.forEach((s) => {
         const key = `${m.id}-${s.id}`
-        const lvl = levels[key]?.level
+        const lvl = levels.get(key)?.level
         if (lvl) buckets[lvl]++
       })
     })

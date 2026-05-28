@@ -104,7 +104,7 @@ export function HeatmapView({
                 {visibleMembers.map((m) => {
                   const counts = [0, 0, 0, 0]
                   g.catSkills.forEach((s) => {
-                    const lvl = levels[`${m.id}-${s.id}`]?.level
+                    const lvl = levels.get(`${m.id}-${s.id}`)?.level
                     if (lvl) counts[lvl - 1]++
                   })
                   return (
@@ -133,7 +133,7 @@ export function HeatmapView({
                 </td>
                 {visibleMembers.map((m) => {
                   const key = `${m.id}-${s.id}`
-                  const level = levels[key]
+                  const level = levels.get(key)
                   const lvl = level?.level || 0
                   const canEditCell = isAdmin || currentUserId === m.id
                   const isEditing = editing === key

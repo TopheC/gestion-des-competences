@@ -1,52 +1,61 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createSkillLevelsModule } from '@/data/skillLevels'
+import { createSupabaseAdapter } from '@/data/adapters/supabaseSkillLevels'
+
+let moduleInstance = null
+
+function getModule() {
+  if (!moduleInstance) {
+    moduleInstance = createSkillLevelsModule(createSupabaseAdapter())
+  }
+  return moduleInstance
+}
 
 const PAGE_SIZE = 50
 
 export function useHistory() {
+  const mod = getModule()
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
   const [count, setCount] = useState(0)
   const [page, setPage] = useState(0)
   const [filters, setFilters] = useState({ memberId: 'all', skillId: 'all' })
-  const channelRef = useRef(null)
+  const unsubRef = useRef(null)
 
-  const totalPages = Math.ceil(count / PAGE_SIZE)
+  const totalPages = Math.ceil(count / PAGE_SIZE) || 1
 
   const fetch = useCallback(async () => {
     setLoading(true)
-
-    let query = supabase
-      .from('skill_history')
-      .select('*, member:member_id(full_name), skill:skill_id(name), changer:changed_by(full_name)', { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
-
-    if (filters.memberId !== 'all') query = query.eq('member_id', filters.memberId)
-    if (filters.skillId !== 'all') query = query.eq('skill_id', filters.skillId)
-
-    const { data, count: total } = await query
-    if (data) setHistory(data)
-    if (total !== null) setCount(total)
+    const result = await mod.listHistory({ page, memberId: filters.memberId, skillId: filters.skillId, pageSize: PAGE_SIZE })
+    if (result.data) setHistory(result.data)
+    if (result.count !== null && result.count !== undefined) setCount(result.count)
     setLoading(false)
-  }, [page, filters])
+  }, [mod, page, filters.memberId, filters.skillId])
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    fetch()
+    let cancelled = false
 
-    channelRef.current = supabase
-      .channel('skill_history_changes')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'skill_history' }, () => {
-        if (page === 0) fetch()
-      })
-      .subscribe()
+    async function load() {
+      setLoading(true)
+      const result = await mod.listHistory({ page, memberId: filters.memberId, skillId: filters.skillId, pageSize: PAGE_SIZE })
+      if (cancelled) return
+      if (result.data) setHistory(result.data)
+      if (result.count !== null && result.count !== undefined) setCount(result.count)
+      setLoading(false)
+    }
+
+    load()
+
+    const unsub = mod.subscribe(() => {
+      if (page === 0) load()
+    })
+    unsubRef.current = unsub
 
     return () => {
-      channelRef.current?.unsubscribe()
+      cancelled = true
+      unsub()
     }
-  }, [fetch, page])
-  /* eslint-enable react-hooks/set-state-in-effect */
+  }, [mod, page, filters.memberId, filters.skillId])
 
   function setFilter(key, value) {
     setFilters((f) => ({ ...f, [key]: value }))

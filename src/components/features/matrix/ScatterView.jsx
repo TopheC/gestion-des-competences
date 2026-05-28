@@ -33,7 +33,7 @@ export default function ScatterView({
         members.forEach((m) => {
           if (filterMember !== 'all' && m.id !== filterMember) return
           const key = `${m.id}-${s.id}`
-          const lvl = levels[key]?.level
+          const lvl = levels.get(key)?.level
           if (!lvl) return
           data.push({
             x,

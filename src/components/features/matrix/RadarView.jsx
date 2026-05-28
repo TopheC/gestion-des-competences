@@ -18,7 +18,7 @@ export default function RadarView({
     members.forEach((m) => {
       catSkills.forEach((s) => {
         const key = `${m.id}-${s.id}`
-        const lvl = levels[key]?.level
+const lvl = levels.get(key)?.level
         if (lvl) { total += lvl; count++ }
       })
     })
@@ -33,7 +33,7 @@ export default function RadarView({
     let count = 0
     catSkills.forEach((s) => {
       const key = `${memberId}-${s.id}`
-      const lvl = levels[key]?.level
+      const lvl = levels.get(key)?.level
       if (lvl) { total += lvl; count++ }
     })
     return count > 0 ? +(total / count).toFixed(1) : 0

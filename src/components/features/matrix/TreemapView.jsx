@@ -25,12 +25,12 @@ export default function TreemapView({
           let count = 0
           if (filterMember !== 'all') {
             const key = `${filterMember}-${s.id}`
-            const lvl = levels[key]?.level
+            const lvl = levels.get(key)?.level
             if (lvl) { total += lvl; count++ }
           } else {
             members.forEach((m) => {
               const key = `${m.id}-${s.id}`
-              const lvl = levels[key]?.level
+              const lvl = levels.get(key)?.level
               if (lvl) { total += lvl; count++ }
             })
           }

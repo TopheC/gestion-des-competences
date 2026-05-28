@@ -9,20 +9,20 @@ export function SkillMemberForm({ member, categories, skills, levels, isAdmin, c
   const initial = {}
   skills.forEach((s) => {
     const key = `${member.id}-${s.id}`
-    initial[s.id] = levels[key]?.level || 0
+    initial[s.id] = levels.get(key)?.level || 0
   })
   const [editedLevels, setEditedLevels] = useState(initial)
 
   const hasChanges = skills.some((s) => {
     const key = `${member.id}-${s.id}`
-    return (editedLevels[s.id] || 0) !== (levels[key]?.level || 0)
+    return (editedLevels[s.id] || 0) !== (levels.get(key)?.level || 0)
   })
 
   function handleSave() {
     const changes = []
     skills.forEach((s) => {
       const key = `${member.id}-${s.id}`
-      const current = levels[key]?.level || 0
+      const current = levels.get(key)?.level || 0
       const edited = editedLevels[s.id] || 0
       if (edited !== current) {
         changes.push({ skillId: s.id, oldLevel: current || null, newLevel: edited })
@@ -57,7 +57,7 @@ export function SkillMemberForm({ member, categories, skills, levels, isAdmin, c
                     />
                   ) : (
                     <span className="text-sm font-medium">
-                      {levels[`${member.id}-${s.id}`]?.level || '—'}
+                      {levels.get(`${member.id}-${s.id}`)?.level || '—'}
                     </span>
                   )}
                 </div>
