@@ -29,6 +29,9 @@ dist-ssr
 .env.*
 !.env.example
 
+# Git hooks (set up via init.templateDir or manual cp)
+.githooks
+
 # OpenCode Stuff
 .agents/*
 opencode*
