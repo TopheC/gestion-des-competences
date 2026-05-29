@@ -58,6 +58,11 @@ src/components/
 
 Multi-stage: `node:20-alpine` build → `nginx:alpine` serve. `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` as build args. SPA routing via nginx `try_files`.
 
+## Documentation
+
+- La documentation du projet (README.md, AGENTS.md, etc.) doit être maintenue **à jour systématiquement avant chaque commit**.
+- Toute fonctionnalité ajoutée, modifiée ou supprimée doit être reflétée dans le README.md (installation, usage, architecture, etc.).
+
 ## Git
 
 Pre-commit hook in `.githooks/pre-commit` scans staged diffs for secrets (Supabase keys, GitHub tokens, Stripe keys, AWS keys, private keys).
