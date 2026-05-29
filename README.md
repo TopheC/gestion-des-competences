@@ -167,10 +167,6 @@ Build multi-stage : `node:20-alpine` compile → `nginx:alpine` sert les fichier
 
 Semver (`MAJEUR.MINEUR.CORRECTIF`). La version est synchronisée entre `package.json` et le fichier `version` à la racine du projet.
 
-## Git
-
-Un hook pre-commit (`.githooks/pre-commit`) analyse les diffs staged pour détecter les secrets (clés Supabase, tokens GitHub, clés AWS/Stripe, clés privées).
-
 ## Conventions
 
 - JavaScript uniquement (`.jsx`), pas de TypeScript
