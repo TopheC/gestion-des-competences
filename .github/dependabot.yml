@@ -1,0 +1,63 @@
+# Dependabot configuration
+# Documentation: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+
+version: 2
+updates:
+  # npm / npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "security"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    groups:
+      react-ecosystem:
+        patterns:
+          - "react*"
+          - "@types/react*"
+          - "react-dom*"
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
+          - "radix-ui"
+      tailwind:
+        patterns:
+          - "tailwindcss*"
+          - "@tailwindcss/*"
+      vite-ecosystem:
+        patterns:
+          - "vite*"
+          - "@vitejs/*"
+    ignore:
+      - dependency-name: "node"
+        versions: ["<20"]
+    # Security updates only (no version bumps for non-security)
+    # Set to true for security-only updates
+    # Set to false (default) for all updates including minor/patch
+    allow:
+      - dependency-type: "direct"
+
+  # Docker base images
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
