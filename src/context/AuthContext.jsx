@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { membersModule } from '@/hooks/useMembers'
 
 const AuthContext = createContext(null)
 
@@ -31,13 +32,19 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe()
   }, [])
 
+  useEffect(() => {
+    const mod = membersModule()
+    const unsub = mod.subscribe((event) => {
+      if (event.type !== 'members_changed') return
+      const mine = mod.list().find((m) => m.id === user?.id)
+      if (mine) setProfile(mine)
+    })
+    return unsub
+  }, [user?.id])
+
   async function fetchProfile(userId) {
-    const { data } = await supabase
-      .from('members')
-      .select('*')
-      .eq('id', userId)
-      .single()
-    setProfile(data)
+    const { data, error } = await membersModule().getById(userId)
+    if (!error) setProfile(data)
   }
 
   async function signIn(email, password) {

@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { SkillLevelBadge } from '@/components/layout/SkillLevelBadge'
 import { skillLevelsModule } from '@/hooks/useSkillLevels'
+import { membersModule } from '@/hooks/useMembers'
 
 export function Dashboard() {
   const [stats, setStats] = useState({ members: 0, skills: 0, categories: 0 })
@@ -12,13 +13,14 @@ export function Dashboard() {
   useEffect(() => {
     async function load() {
       const mod = skillLevelsModule()
-      const [statsResult, topResult, histResult] = await Promise.all([
+      const [statsResult, countResult, topResult, histResult] = await Promise.all([
         mod.getStats(),
+        membersModule().count(),
         mod.getTopSkills(5),
         mod.listHistory({ page: 0, pageSize: 10 }),
       ])
 
-      setStats(statsResult)
+      setStats({ ...statsResult, members: countResult.count ?? 0 })
       setTopSkills(topResult.data || [])
       setRecentChanges(histResult.data || [])
     }
