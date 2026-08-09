@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
+import { useMembers } from '@/hooks/useMembers'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -13,30 +13,23 @@ import { toast } from 'sonner'
 
 export function Members() {
   const { profile } = useAuth()
-  const [members, setMembers] = useState([])
+  const { members, updateMember, removeMember } = useMembers()
   const [editMember, setEditMember] = useState(null)
   const [editName, setEditName] = useState('')
 
-  useEffect(() => { load() }, [])
+  const rows = [...members].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
 
-  async function load() {
-    const { data } = await supabase.from('members').select('*').order('created_at', { ascending: false })
-    if (data) setMembers(data)
-  }
-
-  async function updateMember() {
-    const { error } = await supabase.from('members').update({ full_name: editName }).eq('id', editMember.id)
+  async function handleUpdateMember() {
+    const { error } = await updateMember(editMember.id, { full_name: editName })
     if (error) { toast.error(error.message); return }
     setEditMember(null)
-    load()
     toast.success('Membre mis à jour')
   }
 
-  async function deleteMember(id) {
+  async function handleDeleteMember(id) {
     if (!confirm('Supprimer ce membre ?')) return
-    const { error } = await supabase.from('members').delete().eq('id', id)
+    const { error } = await removeMember(id)
     if (error) { toast.error(error.message); return }
-    load()
     toast.success('Membre supprimé')
   }
 
@@ -81,7 +74,7 @@ export function Members() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {members.map((m) => (
+              {rows.map((m) => (
                 <TableRow key={m.id}>
                   <TableCell className="font-medium">{m.full_name || '—'}</TableCell>
                   <TableCell>{m.email}</TableCell>
@@ -101,12 +94,12 @@ export function Members() {
                           <DialogHeader><DialogTitle>Modifier le membre</DialogTitle></DialogHeader>
                           <div className="space-y-4">
                             <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
-                            <Button onClick={updateMember}>Enregistrer</Button>
+                            <Button onClick={handleUpdateMember}>Enregistrer</Button>
                           </div>
                         </DialogContent>
                       </Dialog>
                       {m.id !== profile?.id && (
-                        <Button size="sm" variant="ghost" onClick={() => deleteMember(m.id)}>🗑</Button>
+                        <Button size="sm" variant="ghost" onClick={() => handleDeleteMember(m.id)}>🗑</Button>
                       )}
                     </div>
                   </TableCell>

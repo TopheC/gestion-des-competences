@@ -39,13 +39,16 @@ src/
 ├── main.jsx                 ← Point d'entrée
 ├── data/                    ← Modules de données (JS pur, testables sans React)
 │   ├── skillLevels.js       ← Module skillLevels (profondeur : interface étroite)
+│   ├── members.js           ← Module members (cache + invariants + listeners)
 │   └── adapters/
 │       ├── supabaseSkillLevels.js    ← Adaptateur production (Supabase)
-│       └── memorySkillLevels.js      ← Adaptateur test (mémoire)
+│       ├── memorySkillLevels.js      ← Adaptateur test (mémoire)
+│       ├── supabaseMembers.js        ← Adaptateur production (Supabase)
+│       └── memoryMembers.js          ← Adaptateur test (mémoire)
 ├── hooks/                   ← Hooks React fins (délèguent aux modules de données)
 │   ├── useSkillLevels.js
 │   ├── useHistory.js
-│   ├── useMembers.js
+│   ├── useMembers.js        ← Lecture + écritures (updateMember, removeMember)
 │   ├── useSkills.js
 │   └── useCategories.js
 ├── components/
@@ -83,7 +86,9 @@ Module JS pur ← seam → Adaptateur Supabase (production)
          Hook React (état + re-rendu)
 ```
 
-Actuellement déployé : `skillLevels` (niveaux + historique). Domaines suivants : `categories`, `skills`, `members`, `invitations`.
+Actuellement déployé : `skillLevels` (niveaux + historique) et `members` (membres). Domaines suivants : `categories`, `skills`, `invitations`.
+
+Le module `members` expose une interface profonde : `refresh()`, `loadIfNeeded()` (idempotent, hydratation dédupliquée), `list()`, `getById(id)` (cache d'abord, fetch au miss), `count()`, `update(id, changes)` (whitelist de champs), `remove(id)` (refuse l'auto-suppression), `subscribe(cb)`. Toute écriture déclenche refresh + notification — les appelants ne rechargent jamais manuellement. L'ordre canonique est `full_name` (la page Membres ré-trie en `created_at` desc localement).
 
 ### Temps réel
 

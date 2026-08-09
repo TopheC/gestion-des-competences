@@ -1,21 +1,21 @@
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { supabase } from '@/lib/supabase'
+import { useMembers } from '@/hooks/useMembers'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 
 export function Profile() {
-  const { profile, fetchProfile } = useAuth()
+  const { profile } = useAuth()
+  const { updateMember } = useMembers()
   const [name, setName] = useState(profile?.full_name || '')
 
   async function handleSave() {
-    const { error } = await supabase.from('members').update({ full_name: name }).eq('id', profile.id)
+    const { error } = await updateMember(profile.id, { full_name: name })
     if (error) {
       toast.error('Erreur lors de la mise à jour')
     } else {
-      fetchProfile(profile.id)
       toast.success('Profil mis à jour')
     }
   }

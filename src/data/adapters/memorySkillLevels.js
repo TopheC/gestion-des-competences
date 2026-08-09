@@ -87,7 +87,7 @@ export function createMemoryAdapter(initialLevels = [], initialHistory = []) {
   }
 
   async function fetchStats() {
-    return { members: 0, skills: 0, categories: 0 }
+    return { skills: 0, categories: 0 }
   }
 
   return {

@@ -90,13 +90,11 @@ export function createSupabaseAdapter() {
   }
 
   async function fetchStats() {
-    const [members, skills, categories] = await Promise.all([
-      supabase.from('members').select('*', { count: 'exact', head: true }),
+    const [skills, categories] = await Promise.all([
       supabase.from('skills').select('*', { count: 'exact', head: true }),
       supabase.from('categories').select('*', { count: 'exact', head: true }),
     ])
     return {
-      members: members.count || 0,
       skills: skills.count || 0,
       categories: categories.count || 0,
     }

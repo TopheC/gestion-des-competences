@@ -1,19 +1,51 @@
 import { useEffect, useState, useCallback } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createMembersModule } from '@/data/members'
+import { createSupabaseMembersAdapter } from '@/data/adapters/supabaseMembers'
+
+let moduleInstance = null
+
+function getModule() {
+  if (!moduleInstance) {
+    moduleInstance = createMembersModule(createSupabaseMembersAdapter())
+  }
+  return moduleInstance
+}
 
 export function useMembers() {
-  const [members, setMembers] = useState([])
-  const [loading, setLoading] = useState(true)
+  const mod = getModule()
+  const [members, setMembers] = useState(() => mod.list())
+  const [loading, setLoading] = useState(() => !mod.isHydrated())
+  const [error, setError] = useState(null)
 
-  const fetch = useCallback(async () => {
-    const { data, error } = await supabase.from('members').select('*').order('full_name')
-    if (!error && data) setMembers(data)
-    setLoading(false)
-    return { data, error }
-  }, [])
+  useEffect(() => {
+    let alive = true
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { fetch() }, [fetch])
+    const unsub = mod.subscribe((event) => {
+      if (!alive) return
+      if (event.type === 'members_changed') {
+        setMembers(mod.list())
+        setLoading(false)
+      }
+      if (event.type === 'error') {
+        setError(event.error)
+        setLoading(false)
+      }
+    })
 
-  return { members, loading, refetch: fetch }
+    mod.loadIfNeeded().then((result) => {
+      if (!alive) return
+      setError(result.error)
+      setLoading(false)
+    })
+
+    return () => { alive = false; unsub() }
+  }, [mod])
+
+  const updateMember = useCallback((memberId, changes) => mod.update(memberId, changes), [mod])
+  const removeMember = useCallback((memberId) => mod.remove(memberId), [mod])
+  const refetch = useCallback(() => mod.refresh(), [mod])
+
+  return { members, loading, error, refetch, updateMember, removeMember }
 }
+
+export { getModule as membersModule }
